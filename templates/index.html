@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6f2">
+  <title>Trust Vault</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=11) }}">
+  <script src="{{ url_for('static', filename='app.js', v=8) }}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Trust Vault home">
+      <span class="brand-mark" aria-hidden="true">T</span>
+      <span>trust<span class="brand-light">vault</span></span>
+    </a>
+    <div class="topbar-right">
+      <span class="connection"><span class="status-dot"></span> Local API</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="welcome">
+      <p class="eyebrow">PRIVATE FILES. CLEAR CONTROL.</p>
+      <h1>Your documents,<br><span>under your control.</span></h1>
+      <p class="welcome-copy">A secure workspace for storing files and managing access with confidence.</p>
+      <div class="welcome-foot">
+        <span class="welcome-icon" aria-hidden="true">↳</span>
+        <span>Local-first document storage<br>with role-based access</span>
+      </div>
+      <div class="decor decor-one" aria-hidden="true"></div>
+      <div class="decor decor-two" aria-hidden="true"></div>
+    </section>
+
+    <section class="workspace">
+      <div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
+
+      <section id="auth-panel" class="panel auth-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">GET STARTED</p>
+            <h2>Welcome to your vault</h2>
+            <p class="muted">Sign in or create your account to continue.</p>
+          </div>
+          <span class="heading-icon" aria-hidden="true">↗</span>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Account actions">
+          <button class="tab active" type="button" data-auth-tab="login" role="tab" aria-selected="true">Sign in</button>
+          <button class="tab" type="button" data-auth-tab="register" role="tab" aria-selected="false">Create account</button>
+          <button class="tab" type="button" data-auth-tab="bootstrap" role="tab" aria-selected="false">First admin</button>
+        </div>
+        <form id="auth-form" class="form-stack">
+          <label>
+            Email address
+            <input id="auth-email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required>
+          </label>
+          <label>
+            Password
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="12" placeholder="At least 12 characters" required>
+          </label>
+          <p id="bootstrap-help" class="hint hidden">Only works once from localhost. It can create a new admin or promote an existing account after confirming its password.</p>
+          <button id="auth-submit" class="button button-primary full-width" type="submit">Sign in</button>
+        </form>
+      </section>
+
+      <section id="app-panel" class="hidden">
+        <div class="dashboard-heading">
+          <div>
+            <p class="eyebrow">YOUR SECURE WORKSPACE</p>
+            <h1 id="dashboard-greeting">Good day</h1>
+            <p class="muted">Your files and access, all in one place.</p>
+            <span class="live-indicator"><span class="status-dot"></span><span id="sync-label">Live sync on</span></span>
+          </div>
+          <div class="dashboard-user">
+            <div class="avatar" id="profile-avatar">U</div>
+            <div class="profile-copy">
+              <span class="profile-label">SIGNED IN AS</span>
+              <h2 id="profile-email">—</h2>
+              <span id="profile-role" class="role-pill">user</span>
+              <button id="logout-button" class="button button-quiet logout-button hidden" type="button">Log out</button>
+            </div>
+            <button id="refresh-button" class="icon-button" type="button" aria-label="Refresh workspace" title="Refresh">↻</button>
+          </div>
+        </div>
+
+        <div class="dashboard-shell">
+          <nav class="dashboard-nav" aria-label="Workspace sections">
+              <a class="nav-link active" href="#documents-panel"><span aria-hidden="true">▤</span>My documents</a>
+              <a class="nav-link" href="#requests-panel" id="requests-nav"><span aria-hidden="true">↗</span>Access requests</a>
+              <a class="nav-link hidden" href="#admin-panel" id="admin-nav"><span aria-hidden="true">◎</span>People &amp; roles</a>
+              <a class="nav-link hidden" href="#audit-section" id="audit-nav"><span aria-hidden="true">◷</span>Activity</a>
+          </nav>
+
+          <div class="dashboard-content">
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-icon">▤</span>
+            <span class="stat-label">Available documents</span>
+            <strong id="document-count">—</strong>
+            <span class="stat-detail">Files you can access</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon stat-icon-blue">⇄</span>
+            <span class="stat-label">Access requests</span>
+            <strong id="request-count">—</strong>
+            <span class="stat-detail">Requests visible to you</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon stat-icon-gold">◈</span>
+            <span class="stat-label">Your role</span>
+            <strong id="role-stat">User</strong>
+            <span class="stat-detail">Access managed by role</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon stat-icon-purple">✓</span>
+            <span class="stat-label">Permissions</span>
+            <strong id="permission-count">—</strong>
+            <span class="stat-detail">Actions currently allowed</span>
+          </article>
+        </div>
+
+        <section class="panel permissions-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">ACCESS</p>
+              <h3>Your permissions</h3>
+            </div>
+          </div>
+          <div id="permission-list" class="permission-list"></div>
+        </section>
+
+        <section id="admin-panel" class="panel hidden">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">ADMIN CONSOLE</p>
+              <h3>People &amp; roles</h3>
+            </div>
+            <span class="admin-badge">ADMIN</span>
+          </div>
+
+          <form id="role-form" class="subsection">
+            <h4>Create a role</h4>
+            <div class="form-row">
+              <label>Role name<input name="name" minlength="2" maxlength="50" placeholder="e.g. document_reader" required></label>
+              <label>Description<input name="description" maxlength="250" placeholder="What can this role do?"></label>
+            </div>
+            <fieldset class="permission-picker">
+              <legend>Grant permissions</legend>
+              <div id="permission-picker" class="checkbox-grid"></div>
+            </fieldset>
+            <button class="button button-secondary" type="submit">Create role</button>
+          </form>
+
+          <form id="user-form" class="subsection">
+            <h4>Create a user</h4>
+            <div class="form-row">
+              <label>Email address<input name="email" type="email" placeholder="person@example.com" required></label>
+              <label>Temporary password<input name="password" type="password" minlength="12" placeholder="At least 12 characters" required></label>
+            </div>
+            <label>Base role
+              <select name="role_id" id="new-user-role" required></select>
+            </label>
+            <label class="check-option permission-toggle">
+              <input id="custom-user-permissions" type="checkbox">
+              <span>Set individual permissions for this user</span>
+            </label>
+            <p class="permission-help">When enabled, this exact set replaces the permissions from the base role.</p>
+            <fieldset id="new-user-permissions-fieldset" class="permission-picker hidden">
+              <legend>Individual permissions</legend>
+              <div class="permission-actions">
+                <button id="new-user-select-all" class="small-button" type="button">Select all</button>
+                <button id="new-user-clear" class="small-button" type="button">Clear</button>
+              </div>
+              <div id="new-user-permission-picker" class="checkbox-grid"></div>
+            </fieldset>
+            <button class="button button-secondary" type="submit">Create user</button>
+          </form>
+
+          <form id="assign-role-form" class="subsection">
+            <h4>Change a user’s role</h4>
+            <div class="form-row assign-row">
+              <label>User ID<input name="user_id" type="number" min="1" placeholder="ID from create-user response" required></label>
+              <label>New role<select name="role_id" id="assign-user-role" required></select></label>
+            </div>
+            <button class="button button-secondary" type="submit">Assign role</button>
+          </form>
+
+          <form id="user-permissions-form" class="subsection">
+            <h4>Set a user’s permissions</h4>
+            <div class="form-row user-lookup-row">
+              <label>User ID<input name="user_id" type="number" min="1" placeholder="ID from the create-user notice" required></label>
+              <button id="load-user-permissions" class="button button-quiet" type="button">Load user</button>
+            </div>
+            <p id="permission-user-summary" class="permission-help">Load a user to view and edit their effective permissions.</p>
+            <label class="check-option permission-toggle">
+              <input id="inherit-role-permissions" type="checkbox" checked>
+              <span>Use permissions from the assigned role</span>
+            </label>
+            <fieldset id="edit-user-permissions-fieldset" class="permission-picker hidden">
+              <legend>Individual permissions</legend>
+              <div class="permission-actions">
+                <button id="edit-user-select-all" class="small-button" type="button">Select all</button>
+                <button id="edit-user-clear" class="small-button" type="button">Clear</button>
+              </div>
+              <div id="edit-user-permission-picker" class="checkbox-grid"></div>
+            </fieldset>
+            <p class="permission-help">Uncheck role inheritance to replace that user’s permissions with this selection.</p>
+            <button id="save-user-permissions" class="button button-secondary" type="submit" disabled>Save permissions</button>
+          </form>
+
+        </section>
+
+        <section id="audit-section" class="panel hidden">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">ADMINISTRATION</p>
+              <h3>Recent activity</h3>
+            </div>
+            <button id="audit-refresh" class="button button-quiet" type="button">Load audit log</button>
+          </div>
+          <div id="audit-list" class="request-list"></div>
+        </section>
+
+        <section id="documents-panel" class="panel documents-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">FILE LIBRARY</p>
+              <h3>My documents</h3>
+              <p class="section-subtitle">Your private files and documents shared with you.</p>
+            </div>
+            <label class="search-box">
+              <span aria-hidden="true">⌕</span>
+              <input id="document-search" type="search" placeholder="Search files" aria-label="Search documents">
+            </label>
+          </div>
+          <form id="upload-form" class="upload-box">
+            <div class="upload-copy">
+              <span class="upload-icon" aria-hidden="true">↑</span>
+              <div><strong>Add a document</strong><span>PDF, DOC, DOCX, JPG, PNG or TXT · Max 16 MiB</span></div>
+            </div>
+            <input id="upload-file" name="file" type="file" accept=".doc,.docx,.jpeg,.jpg,.pdf,.png,.txt" required>
+            <button class="button button-primary" type="submit">Upload file</button>
+          </form>
+          <div id="document-list" class="document-list">
+            <p class="empty-state">Sign in to view your documents.</p>
+          </div>
+        </section>
+
+        <section id="requests-panel" class="panel hidden">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">SHARING</p>
+              <h3>Access requests</h3>
+            </div>
+            <button id="requests-refresh" class="button button-quiet" type="button">Refresh</button>
+          </div>
+          <form id="access-request-form" class="access-request-form hidden">
+            <div class="form-row">
+              <label>Document ID<input name="document_id" placeholder="Paste the document ID" required></label>
+              <label>Reason<input name="reason" maxlength="1000" placeholder="Why do you need access?" required></label>
+            </div>
+            <button class="button button-secondary" type="submit">Request access</button>
+          </form>
+          <div id="request-list" class="request-list"></div>
+        </section>
+          </div>
+        </div>
+      </section>
+      <footer class="page-footer">Trust Vault <span>·</span> Private by design</footer>
+    </section>
+  </main>
+</body>
+</html>
