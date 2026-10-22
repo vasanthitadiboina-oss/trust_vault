@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: trust-vault
+    runtime: python
+    plan: 0.5c-512mb
+    region: singapore
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 1 --bind 0.0.0.0:$PORT python_code:app
+    healthCheckPath: /api/health
+    domains:
+      - trustvault.com
+    envVars:
+      - key: TRUST_VAULT_ENV
+        value: production
+      - key: TRUST_VAULT_JWT_SECRET_KEY
+        generateValue: true
+      - key: TRUST_VAULT_DATABASE
+        value: /var/data/trust_vault.sqlite3
+      - key: TRUST_VAULT_UPLOAD_FOLDER
+        value: /var/data/uploads
+    disk:
+      name: trust-vault-data
+      mountPath: /var/data
+      sizeGB: 1

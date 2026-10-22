@@ -1,0 +1,4 @@
+/instance/localhost.crt
+/instance/localhost.key
+/instance/*.sqlite3
+/instance/uploads/
